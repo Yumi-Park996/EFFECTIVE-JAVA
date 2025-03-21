@@ -204,6 +204,63 @@ objArray[0] = 100;
 String value = attributes[0]; // (4) Integer를 String으로 변환 → ClassCastException!
 ```
 ---
+### 안전한 제네릭 varargs 예시: flatten 메서드
+
+여러 개의 리스트를 받아 하나로 합치는 메서드.
+
+배열에는 값을 저장하지 않고, 외부에 노출하지 않으므로 안전함.
+
+따라서 @SafeVarargs를 붙여도 문제가 없음.
+
+```
+@SafeVarargs
+static <T> List<T> flatten(List<? extends T>... lists) {
+    List<T> result = new ArrayList<>(); // 결과를 담을 리스트 생성
+    for (List<? extends T> list : lists) // 각 리스트를 순회하며
+        result.addAll(list);             // 리스트의 모든 요소를 결과에 추가
+    return result;                       // 최종 합쳐진 리스트 반환
+}
+```
+
+@SafeVarargs: 이 메서드는 제네릭 varargs를 쓰지만 안전하다는 의미. 경고 제거.
+
+static <T> List<T> flatten(...): 어떤 타입이든 받아서 그 타입의 리스트로 결과 반환.
+
+List<? extends T>... lists: 리스트 여러 개를 인자로 받을 수 있음 (가변 인자).
+
+List<T> result = new ArrayList<>();: 결과를 담을 비어 있는 리스트 생성.
+
+for (...) result.addAll(...): 리스트들을 하나씩 돌며 안의 값을 전부 결과에 추가.
+
+return result;: 다 합쳐진 리스트를 반환.
+
+---
+### 대체 방식: varargs 대신 List<List<?>> 사용하기
+
+varargs를 쓰지 않고 리스트를 리스트로 받으면 더 타입 안정적입니다.
+
+컴파일러가 타입 안정성을 직접 검사할 수 있어서 안전합니다.
+
+코드가 살짝 복잡해지긴 해도, @SafeVarargs를 쓸 필요가 없습니다.
+
+```
+static <T> List<T> flatten(List<List<? extends T>> lists) {
+    List<T> result = new ArrayList<>(); // 결과 리스트 생성
+    for (List<? extends T> list : lists) // 리스트들을 순회하면서
+        result.addAll(list);             // 각 리스트의 요소들을 결과에 추가
+    return result;                       // 합쳐진 리스트 반환
+}
+```
+
+**🔍 차이점은?**
+
+List<List<? extends T>> lists: 이건 가변 인자(varargs)가 아닌 리스트 안의 리스트예요.
+
+나머지는 varargs 버전과 거의 똑같이 작동합니다.
+
+대신 컴파일러가 타입을 더 잘 검사할 수 있어서 @SafeVarargs를 안 써도 됨.
+
+---
 **발표 자료**
 
 https://byumm315.atlassian.net/wiki/external/NmZjYjg3OWVhYWE5NGZmNzk4NDUyOWJjZTIxNjM2MDQ
